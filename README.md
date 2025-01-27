@@ -1,2 +1,2 @@
-# StartSpring
-Minimal Spring REST project
+# MessagesQueues
+Minimal Message Queuing REST project
