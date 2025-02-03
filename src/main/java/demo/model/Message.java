@@ -1,22 +1,37 @@
 package demo.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+
+@Entity
 public class Message {
-    private int id;
+    @Id
+    @GeneratedValue
+    private long id;
     private String text;
+
+    @ManyToOne
+    @JsonBackReference
+    private MessageQueue queue;
 
     public Message() {
     }
 
-    public Message(int id, String text) {
+    public Message(long id, String text) {
         this.id = id;
         this.text = text;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -26,5 +41,13 @@ public class Message {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public MessageQueue getQueue() {
+        return queue;
+    }
+
+    public void setQueue(MessageQueue queue) {
+        this.queue = queue;
     }
 }
