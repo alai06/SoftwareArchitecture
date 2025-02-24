@@ -1,0 +1,36 @@
+package demo.service;
+
+import demo.model.Message;
+import demo.model.MessageQueue;
+import demo.repository.MessageRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class MessageService {
+    
+    @Autowired
+    private MessageRepository messageRepository;
+
+    public List<Message> findAllByQueue(MessageQueue queue) {
+        return messageRepository.findAllByQueue(queue);
+    }
+
+    public List<Message> searchMessages(MessageQueue queue, String query) {
+        return messageRepository.findByTextContainingAndQueue(query, queue);
+    }
+    
+    public boolean deleteMessageIfOrphan(long msgId, MessageQueue queue) {
+        Message message = messageRepository.findById(msgId);
+        if (message != null) {
+            message.removeQueue(queue);
+            if (message.isOrphan()) {
+                messageRepository.delete(message);
+                return true;
+            }
+        }
+        return false;
+    }
+}
