@@ -1,83 +1,50 @@
 package demo.model;
 
-import java.time.LocalDateTime;
-import java.util.HashSet;
+import jakarta.persistence.*;
 import java.util.Set;
-
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.HashSet;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
-public class Message {
-    private static final Logger logger = LoggerFactory.getLogger(Message.class);
-
+public class MessageQueue {
+    
     @Id
     @GeneratedValue
     private long id;
-    private String text;
-    private LocalDateTime timeCreated;
-    private LocalDateTime timeFirstAccessed;
-    private int numberOfReads;
+    
+    private String name;
 
-    @ManyToMany(mappedBy = "messages")
-    @JsonManagedReference
-    private Set<MessageQueue> queues = new HashSet<>();
+    @ManyToMany
+    @JsonBackReference
+    private Set<Message> messages = new HashSet<>();
 
-    public Message() {
-        this.timeCreated = LocalDateTime.now();
-    }
+    public MessageQueue() {}
 
-    public Message(String text) {
-        this.text = text;
-        this.timeCreated = LocalDateTime.now();
+    public MessageQueue(String name) {
+        this.name = name;
     }
 
     public long getId() {
         return id;
     }
 
-    public String getText() {
-        return text;
+    public String getName() {
+        return name;
     }
 
-    public void setText(String text) {
-        this.text = text;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public LocalDateTime getTimeCreated() {
-        return timeCreated;
+    public Set<Message> getMessages() {
+        return messages;
     }
 
-    public LocalDateTime getTimeFirstAccessed() {
-        return timeFirstAccessed;
+    public void addMessage(Message message) {
+        this.messages.add(message);
     }
 
-    public int getNumberOfReads() {
-        return numberOfReads;
-    }
-
-    public void addQueue(MessageQueue queue) {
-        this.queues.add(queue);
-    }
-
-    public void removeQueue(MessageQueue queue) {
-        this.queues.remove(queue);
-    }
-
-    public boolean isOrphan() {
-        return queues.isEmpty();
-    }
-
-    public void markAsRead() {
-        if (this.timeFirstAccessed == null) {
-            this.timeFirstAccessed = LocalDateTime.now();
-        }
-        this.numberOfReads++;
-        logger.info("Message {} has been read {} times", id, numberOfReads);
+    public void removeMessage(Message message) {
+        this.messages.remove(message);
     }
 }

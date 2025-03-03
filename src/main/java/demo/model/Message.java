@@ -1,12 +1,7 @@
 package demo.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 
 @Entity
 public class Message {
@@ -19,8 +14,7 @@ public class Message {
     @JsonBackReference
     private MessageQueue queue;
 
-    public Message() {
-    }
+    public Message() {}
 
     public Message(long id, String text) {
         this.id = id;

@@ -1,49 +1,35 @@
 package demo.service;
 
-import demo.model.Message;
 import demo.model.MessageQueue;
-import demo.repository.MessageRepository;
+import demo.repository.QueueRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
-public class MessageService {
-    private static final Logger logger = LoggerFactory.getLogger(MessageService.class);
-    
+public class QueueService {
+
     @Autowired
-    private MessageRepository messageRepository;
+    private QueueRepository queueRepository;
 
-    public List<Message> findAllByQueue(MessageQueue queue) {
-        return messageRepository.findAllByQueue(queue);
+    // Récupérer toutes les files de messages
+    public List<MessageQueue> findAllQueues() {
+        return queueRepository.findAll();
     }
 
-    public List<Message> searchMessages(MessageQueue queue, String query) {
-        return messageRepository.findByTextContainingAndQueue(query, queue);
+    // Trouver une file de messages par son ID
+    public Optional<MessageQueue> findQueueById(long id) {
+        return queueRepository.findById(id);
     }
-    
-    public boolean deleteMessageIfOrphan(long msgId, MessageQueue queue) {
-        Message message = messageRepository.findById(msgId);
-        if (message != null) {
-            // Ne pas supprimer si le message n'a jamais été lu
-            if (message.getTimeFirstAccessed() == null) {
-                logger.warn("Tentative de suppression du message {} qui n'a jamais été lu", message.getId());
-                return false;
-            }
-            
-            message.removeQueue(queue);
-            if (message.isOrphan()) {
-                long timeToDelete = Duration.between(message.getTimeCreated(), LocalDateTime.now()).toMinutes();
-                logger.info("Message {} supprimé après {} minutes", message.getId(), timeToDelete);
-                messageRepository.delete(message);
-                return true;
-            }
-        }
-        return false;
+
+    // Ajouter une nouvelle file de messages
+    public MessageQueue saveQueue(MessageQueue queue) {
+        return queueRepository.save(queue);
+    }
+
+    // Supprimer une file de messages
+    public void deleteQueue(long id) {
+        queueRepository.deleteById(id);
     }
 }
