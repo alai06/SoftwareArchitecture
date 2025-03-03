@@ -7,5 +7,5 @@ RUN mvn clean package -DskipTests
 
 FROM openjdk:17
 WORKDIR /app
-COPY - from=build /app/target/myspringapp.jar .
+COPY --from=build /app/target/myspringapp.jar .
 CMD ["java", "-jar", "myspringapp.jar"]

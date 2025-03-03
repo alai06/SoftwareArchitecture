@@ -1,0 +1,8 @@
+demo/controller/MessageQueueController.class
+demo/model/Message.class
+demo/repository/MessageRepository.class
+demo/service/MessageService.class
+demo/model/MessageQueue.class
+demo/DemoApp.class
+demo/service/QueueService.class
+demo/repository/QueueRepository.class
