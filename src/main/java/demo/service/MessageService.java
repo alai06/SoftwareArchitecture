@@ -4,7 +4,6 @@ import demo.model.Message;
 import demo.model.MessageQueue;
 import demo.repository.MessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -34,5 +33,8 @@ public class MessageService {
     public Message getNextMessage(MessageQueue queue) {
         return messageRepository.findAllByQueue(queue).stream().findFirst().orElse(null);
     }
-    
+
+    public Message createMessage(Message message) { // ✅ Ajout de la méthode createMessage
+        return messageRepository.save(message);
+    }
 }

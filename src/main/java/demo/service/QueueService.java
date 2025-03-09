@@ -26,8 +26,12 @@ public class QueueService {
         return queueRepository.save(queue);
     }
 
-    public void deleteQueue(long id) {
-        queueRepository.deleteById(id);
+    public boolean deleteQueue(long id) { // ✅ Modification pour retourner un boolean
+        if (queueRepository.existsById(id)) {
+            queueRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 
     public List<MessageQueue> findByPrefix(String prefix) {
@@ -36,5 +40,12 @@ public class QueueService {
                 .filter(q -> q.getName().startsWith(prefix))
                 .collect(Collectors.toList());
     }
-    
+
+    public MessageQueue createQueue(MessageQueue queue) { // ✅ Ajout de createQueue
+        return queueRepository.save(queue);
+    }
+
+    public MessageQueue updateQueue(MessageQueue queue) { // ✅ Ajout de updateQueue
+        return queueRepository.save(queue);
+    }
 }

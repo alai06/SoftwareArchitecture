@@ -1,21 +1,32 @@
+version: '3.8'
+
 services:
   db:
     image: postgres:14.1
+    restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123
     ports:
       - "5433:5432"
+    volumes:
+      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       retries: 5
-      start_period: 10s
+      start_period: 60s
 
   app:
-    image: myspringapp
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: app
     restart: always
+    ports:
+      - "8080:8080"
     depends_on:
       db:
         condition: service_healthy
@@ -23,6 +34,120 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/message_queue
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: 123
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 50s
+
+  worker1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: worker1
+    restart: always
     ports:
-      - "8080:8080"
+      - "8081:8080"  # worker1 expose sur 8081 (8080 à l'intérieur du conteneur)
+    depends_on:
+      db:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/message_queue
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 50s
+
+  worker2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: worker2
+    restart: always
+    ports:
+      - "8082:8080"  # worker2 expose sur 8082 (8080 à l'intérieur du conteneur)
+    depends_on:
+      db:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/message_queue
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 50s
+
+  socat:
+    build:
+      context: .
+      dockerfile: Dockerfile.socat
+    container_name: socat
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "2375:2375"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "telnet localhost 2375 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile.monitor
+    container_name: monitor
+    depends_on:
+      - socat
+      - db
+      - app
+    environment:
+      DOCKER_HOST: tcp://socat:2375
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/message_queue
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"  # Nginx expose sur 80
+    depends_on:
+      - worker1
+      - worker2
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+networks:
+  app-network:
+    driver: bridge

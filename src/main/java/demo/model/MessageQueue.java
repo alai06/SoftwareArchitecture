@@ -28,6 +28,10 @@ public class MessageQueue {
         return id;
     }
 
+    public void setId(long id) { // ✅ Ajout de la méthode setId
+        this.id = id;
+    }
+
     public String getName() {
         return name;
     }

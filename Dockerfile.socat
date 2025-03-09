@@ -1,0 +1,3 @@
+FROM alpine/socat
+RUN apk add --no-cache busybox-extras
+CMD ["tcp-listen:2375,reuseaddr,fork", "unix-connect:/var/run/docker.sock"]
